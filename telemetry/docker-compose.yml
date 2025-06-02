@@ -7,14 +7,11 @@ services:
       - "victoriametrics"
       - "victorialogs"
     volumes:
-      - grafanadata:/var/lib/grafana
+      - grafanadata:/var/lib/grafana/
       - ./grafana/datasources/victoria.yml:/etc/grafana/provisioning/datasources/single.yml
       - ./grafana/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-      - ./grafana/dashboards/victoriametrics.json:/var/lib/grafana/dashboards/victoriametrics.json
-      - ./grafana/dashboards/victorialogs.json:/var/lib/grafana/dashboards/victorialogs.json
-      - ./grafana/dashboards/vmagent.json:/var/lib/grafana/dashboards/vmagent.json
-      - ./grafana/dashboards/vmalert.json:/var/lib/grafana/dashboards/vmalert.json
-      - ./grafana/plugins/:/var/lib/grafana/plugins
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards/
+      - ./grafana/plugins/:/var/lib/grafana/plugins/
     environment:
       - "GF_INSTALL_PLUGINS=victoriametrics-logs-datasource,victoriametrics-metrics-datasource"
       - "GF_AUTH_GENERIC_OAUTH_ENABLED=TRUE"
