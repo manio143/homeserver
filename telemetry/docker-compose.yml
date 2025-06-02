@@ -24,6 +24,8 @@ services:
       - "GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${AUTH_TOKEN_URL}"
       - "GF_AUTH_GENERIC_OAUTH_API_URL=${AUTH_USERINFO_URL}"
     restart: always
+    networks:
+      - coolify
 
   # [!!!] Trying to use journald collector directly instead of vector
   # SET "log-driver": "journald" IN /etc/docker
@@ -146,3 +148,7 @@ services:
 volumes:
   grafanadata: {}
   grafanaplugins: {}
+
+networks:
+  coolify:
+    external: true
