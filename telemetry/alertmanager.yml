@@ -1,0 +1,20 @@
+# https://github.com/prometheus/alertmanager
+# route:
+#   receiver: blackhole
+# receivers:
+#   - name: blackhole
+# https://helenaferdy.blog/posts/alert-telegram/
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 24h
+  receiver: 'telegram'
+receivers:
+- name: 'telegram'
+  webhook_configs:
+  - url: "http://telegram_proxy:8080/alerts"
+    send_resolved: true

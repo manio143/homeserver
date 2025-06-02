@@ -1,0 +1,150 @@
+# Based on https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/deployment/docker/README.md
+services:
+  # Grafana instance configured with VictoriaMetrics and VictoriaLogs as datasource
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - "victoriametrics"
+      - "victorialogs"
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./grafana/datasources/victoriametrics-logs-datasource/single.yml:/etc/grafana/provisioning/datasources/single.yml
+      - ./grafana/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./grafana/dashboards/victoriametrics.json:/var/lib/grafana/dashboards/victoriametrics.json
+      - ./grafana/dashboards/victorialogs.json:/var/lib/grafana/dashboards/victorialogs.json
+      - ./grafana/dashboards/vmagent.json:/var/lib/grafana/dashboards/vmagent.json
+      - ./grafana/dashboards/vmalert.json:/var/lib/grafana/dashboards/vmalert.json
+      - ./grafana/plugins/:/var/lib/grafana/plugins
+    environment:
+      - "GF_INSTALL_PLUGINS=victoriametrics-logs-datasource,victoriametrics-metrics-datasource"
+      - "GF_AUTH_GENERIC_OAUTH_ENABLED=TRUE"
+      - "GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=TRUE"
+      - "GF_AUTH_GENERIC_OAUTH_NAME=Auth"
+      - "GF_AUTH_GENERIC_OAUTH_CLIENT_ID=${AUTH_CLIENT_ID}"
+      - "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=${AUTH_SECRET_ID}"
+      - "GF_AUTH_GENERIC_OAUTH_SCOPES=openid profile email"
+      - "GF_AUTH_GENERIC_OAUTH_AUTH_URL=${AUTH_URL}"
+      - "GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${AUTH_TOKEN_URL}"
+      - "GF_AUTH_GENERIC_OAUTH_API_URL=${AUTH_USERINFO_URL}"
+    restart: always
+
+  # [!!!] Trying to use journald collector directly instead of vector
+  # SET "log-driver": "journald" IN /etc/docker
+  # INSTALL systemd-journal-upload
+  # SET ```
+  # [Upload]
+  # URL=http://localhost:9428/insert/journald
+  # ``` IN /etc/systemd/journal-upload.conf
+
+  # vector is logs collector. It collects logs according to vector.yml
+  # and forwards them to VictoriaLogs
+  # vector:
+  #   image: timberio/vector:0.47.0-distroless-libc
+  #   volumes:
+  #     - type: bind
+  #       source: /var/run/docker.sock
+  #       target: /var/run/docker.sock
+  #     - type: bind
+  #       source: /var/lib/docker
+  #       target: /var/lib/docker
+  #     - ./vector/vector-vl-single.yml:/etc/vector/vector.yaml:ro
+  #   depends_on: [victorialogs]
+  #   user: root
+
+  #  VictoriaLogs instance, a single process responsible for
+  #  storing logs and serving read queries.
+  victorialogs:
+    image: victoriametrics/victoria-logs:v1.23.2-victorialogs
+    ports:
+      - "9428:9428" # exposed on host's localhost
+    command:
+      - "--storageDataPath=/vlogs"
+    volumes:
+      - ${HOME_TELEMETRY}/vlogs:/vlogs
+
+  # VictoriaMetrics instance, a single process responsible for
+  # scraping, storing metrics and serve read requests.
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.118.0
+    # ports:
+    #   - "8428:8428"
+    volumes:
+      - ${HOME_TELEMETRY}/vmetrics:/storage
+      - ./prometheus-vl-single.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--storageDataPath=/storage"
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+    restart: always
+
+  # vmauth is a router and balancer for HTTP requests.
+  # It proxies query requests from vmalert to either VictoriaMetrics or VictoriaLogs,
+  # depending on the requested path.
+  vmauth:
+    image: victoriametrics/vmauth:v1.118.0
+    depends_on:
+      - "victoriametrics"
+      - "victorialogs"
+    volumes:
+      - ./auth-vl-single.yml:/etc/auth.yml
+    command:
+      - "--auth.config=/etc/auth.yml"
+    # ports:
+    #   - 8427:8427
+    restart: always
+
+  # vmalert executes alerting and recording rules according to the given rule type.
+  vmalert:
+    image: victoriametrics/vmalert:v1.118.0
+    depends_on:
+      - "vmauth"
+      - "alertmanager"
+      - "victoriametrics"
+    # ports:
+    #   - 8880:8880
+    volumes:
+      - ./vmalert/:/etc/alerts/
+    command:
+      # it evaluates data against VictoriaMetrics and VictoriaLogs
+      # vmauth routes queries to corresponding datasource based on API path
+      - "--datasource.url=http://vmauth:8427/"
+      # results of alerting and recording rules are persisted to VictoriaMetrics only
+      - "--remoteWrite.url=http://victoriametrics:8428/"
+      # alerts state is restored from VictoriaMetrics on restarts
+      - "--remoteRead.url=http://victoriametrics:8428/"
+      - "--notifier.url=http://alertmanager:9093/"
+      - "--rule=/etc/alerts/*.yml"
+      # display source of alerts in grafana
+      - "--external.url=${GRAFANA_URL}" #grafana outside container
+      - '--external.alert.source=explore?orgId=1&left={"datasource":"{{ if eq .Type "vlogs" }}VictoriaLogs{{ else }}VictoriaMetrics{{ end }}","queries":[{"expr":{{.Expr|jsonEscape|queryEscape}},"refId":"A"}],"range":{"from":"{{ .ActiveAt.UnixMilli }}","to":"now"}}'
+    restart: always
+
+  # alertmanager receives alerting notifications from vmalert
+  # and distributes them according to --config.file.
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    volumes:
+      - ./alertmanager.yml:/config/alertmanager.yml
+    command:
+      - "--config.file=/config/alertmanager.yml"
+    # ports:
+    #   - 9093:9093
+    restart: always
+
+  # for alertmanager to send alerts
+  telegram_proxy:
+    image: ghcr.io/janw/alertmanager-telegram:edge
+    environment:
+      - "TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}"
+      - "TELEGRAM_TOKEN=${TELEGRAM_TOKEN}"
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./otel-collector.yml:/config/collector.yml
+    command:
+      - "--config=file:/config/collector.yml"
+    ports:
+      - 4317:4317
+
+volumes:
+  grafanadata: {}
