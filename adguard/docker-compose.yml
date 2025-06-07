@@ -11,3 +11,11 @@ services:
       - "67:67/udp" #DHCP
       - "68:68/udp" #DHCP
       - "68:68/tcp"
+    networks:
+      local_macvlan:
+
+# docker network create -d macvlan --subnet=192.168.0.0/24 --gateway=192.168.0.1 -o parent=eno1 local_macvlan
+networks:
+  local_macvlan:
+    external:
+       name: local_macvlan
