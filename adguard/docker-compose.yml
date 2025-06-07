@@ -6,4 +6,5 @@ services:
       - ${WORK_DIR}:/opt/adguardhome/work
       - ${CONF_DIR}:/opt/adguardhome/conf
     ports:
-      - 53:53 #DNS
+      - "53:53/udp" #DNS
+      - "53:53/tcp"
