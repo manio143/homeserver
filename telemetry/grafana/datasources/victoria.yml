@@ -7,6 +7,6 @@ datasources:
     url:  http://vmauth:8427/
 
   - name: VictoriaMetrics
-    type: prometheus
+    type: victoriametrics-metrics-datasource
     access: proxy
     url: http://vmauth:8427/
