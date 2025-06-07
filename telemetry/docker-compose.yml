@@ -23,6 +23,7 @@ services:
       - "GF_AUTH_GENERIC_OAUTH_AUTH_URL=${AUTH_URL}"
       - "GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${AUTH_TOKEN_URL}"
       - "GF_AUTH_GENERIC_OAUTH_API_URL=${AUTH_USERINFO_URL}"
+      - "GF_SERVER_ROOT_URL=${PUBLIC_URL_ROOT}"
     restart: always
     networks:
       - coolify
