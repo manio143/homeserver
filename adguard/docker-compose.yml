@@ -1,0 +1,9 @@
+services:
+  adguard:
+    image: adguard/adguardhome:latest
+    restart: unless-stopped
+    volumes:
+      - ${WORK_DIR}:/opt/adguardhome/work
+      - ${CONF_DIR}:/opt/adguardhome/conf
+    ports:
+      - 53:53 #DNS
