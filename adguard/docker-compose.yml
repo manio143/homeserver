@@ -19,4 +19,14 @@ services:
 networks:
   local_macvlan:
     name: local_macvlan
-    external: true
+    driver: macvlan
+    driver_opts:
+      parent: eno1
+    enable_ipv4: true
+    enable_ipv6: true
+    ipam:
+      config:
+      - subnet: 192.168.0.0/24
+        gateway: 192.168.0.1
+      - subnet: fe80:0000:0000:0000::/64
+        gateway: fe80::c6eb:43ff:fe4d:c910
