@@ -14,7 +14,7 @@ services:
     networks:
       local_macvlan:
         ipv4_address: 192.168.0.2
-        ipv6_address: fe80::c6eb:43ff:fe4d:2
+        ipv6_address: fd59:c039:d3b8:d3b8::2
 
 # docker network create -d macvlan --subnet=192.168.0.0/24 --gateway=192.168.0.1 -o parent=eno1 local_macvlan
 networks:
@@ -29,5 +29,5 @@ networks:
       config:
       - subnet: 192.168.0.0/24
         gateway: 192.168.0.1
-      - subnet: fe80:0000:0000:0000::/64
-        gateway: fe80::c6eb:43ff:fe4d:c910
+      - subnet: fd59:c039:d3b8:d3b8::/64
+        gateway: fd59:c039:d3b8:d3b8::1
