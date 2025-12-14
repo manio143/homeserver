@@ -23,6 +23,7 @@ networks:
     driver: macvlan
     driver_opts:
       parent: eno1
+      com.docker.network.bridge.name: lan01
     enable_ipv4: true
     enable_ipv6: true
     ipam:
