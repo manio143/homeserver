@@ -16,6 +16,12 @@ services:
         ipv4_address: 192.168.0.2
         ipv6_address: fd59:c039:d3b8:d3b8::2
 
+# Note: docker cannot guarantee the macvlan network will bind to the same name (e.g. eth1)
+# across restarts. If Adguard DHCP stops working, go into settings:
+# 1. Disable DHCP server
+# 2. Change the interface to the correct one
+# 3. Click Check for DHCP servers
+# 4. Re-enable DHCP server
 # docker network create -d macvlan --subnet=192.168.0.0/24 --gateway=192.168.0.1 -o parent=eno1 local_macvlan
 networks:
   local_macvlan:
@@ -23,7 +29,6 @@ networks:
     driver: macvlan
     driver_opts:
       parent: eno1
-      com.docker.network.bridge.name: lan01
     enable_ipv4: true
     enable_ipv6: true
     ipam:
