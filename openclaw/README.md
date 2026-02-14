@@ -65,7 +65,7 @@ The following locations contain sensitive secrets:
 
 | Location | Contains |
 |---|---|
-| Coolify environment variables | `OPENCLAW_GATEWAY_TOKEN` — authenticates access to the dashboard and API |
+| Coolify environment variables | `OPENCLAW_GATEWAY_TOKEN` — authenticates access to the dashboard and API. Mark as sensitive/secret in Coolify. |
 | `~/openclaw/config/openclaw.json` | Channel tokens (Telegram bot token, etc.) and API keys |
 
 Recommended:

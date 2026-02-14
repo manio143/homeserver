@@ -51,7 +51,8 @@ if [ -z "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
   fi
 fi
 
-echo "Generated gateway token: $OPENCLAW_GATEWAY_TOKEN"
+echo "Generated gateway token (save this for Coolify, then clear terminal history):"
+echo "  $OPENCLAW_GATEWAY_TOKEN"
 echo ""
 
 # --- Clone and build ---
