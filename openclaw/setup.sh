@@ -1,23 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="/tmp/openclaw"
 IMAGE_NAME="openclaw:local"
 
 echo "========================================="
-echo " OpenClaw Setup for Coolify"
+echo " OpenClaw Image Build & Setup"
 echo "========================================="
+echo ""
+echo "This script builds the Docker image and runs"
+echo "onboarding + channel setup. The container is"
+echo "then deployed separately via Coolify."
 echo ""
 
 # --- Prerequisites ---
 if ! command -v docker >/dev/null 2>&1; then
   echo "ERROR: docker is not installed." >&2
-  exit 1
-fi
-
-if ! docker compose version >/dev/null 2>&1; then
-  echo "ERROR: docker compose is not available." >&2
   exit 1
 fi
 
@@ -27,7 +25,7 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 # --- Configuration ---
-export HOME_OPENCLAW="${HOME_OPENCLAW:-$HOME/openclaw}"
+HOME_OPENCLAW="${HOME_OPENCLAW:-$HOME/openclaw}"
 
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
@@ -52,7 +50,9 @@ if [ -z "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
     exit 1
   fi
 fi
-export OPENCLAW_GATEWAY_TOKEN
+
+echo "Generated gateway token: $OPENCLAW_GATEWAY_TOKEN"
+echo ""
 
 # --- Clone and build ---
 if [ -d "$REPO_DIR" ]; then
@@ -69,16 +69,6 @@ echo "    (this may take several minutes)"
 echo ""
 docker build -t "$IMAGE_NAME" -f "$REPO_DIR/Dockerfile" "$REPO_DIR"
 
-# --- Write .env file ---
-ENV_FILE="$SCRIPT_DIR/.env"
-cat > "$ENV_FILE" <<EOF
-HOME_OPENCLAW=${HOME_OPENCLAW}
-OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-EOF
-
-echo ""
-echo "==> Environment written to $ENV_FILE"
-
 # --- Onboarding ---
 echo ""
 echo "========================================="
@@ -92,11 +82,12 @@ echo "  - Gateway token: (will be pre-set)"
 echo "  - Tailscale exposure: Off"
 echo "  - Install Gateway daemon: No"
 echo ""
-docker compose -f "$SCRIPT_DIR/docker-compose.yml" --env-file "$ENV_FILE" \
-  run --rm \
+docker run --rm -it \
   -e HOME=/home/node \
   -e OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
-  openclaw-gateway \
+  -v "$HOME_OPENCLAW/config:/home/node/.openclaw" \
+  -v "$HOME_OPENCLAW/workspace:/home/node/.openclaw/workspace" \
+  "$IMAGE_NAME" \
   node openclaw.mjs onboard --no-install-daemon
 
 # --- Telegram setup ---
@@ -113,47 +104,33 @@ echo ""
 read -rp "Enter your Telegram bot token (or press Enter to skip): " TELEGRAM_TOKEN
 
 if [ -n "$TELEGRAM_TOKEN" ]; then
-  docker compose -f "$SCRIPT_DIR/docker-compose.yml" --env-file "$ENV_FILE" \
-    run --rm \
+  docker run --rm -it \
     -e HOME=/home/node \
     -e OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
-    openclaw-gateway \
+    -v "$HOME_OPENCLAW/config:/home/node/.openclaw" \
+    -v "$HOME_OPENCLAW/workspace:/home/node/.openclaw/workspace" \
+    "$IMAGE_NAME" \
     node openclaw.mjs channels add --channel telegram --token "$TELEGRAM_TOKEN"
 
   echo ""
   echo "Telegram bot configured successfully."
 else
   echo "Skipping Telegram setup."
-  echo "You can set it up later by running:"
-  echo "  docker compose -f $SCRIPT_DIR/docker-compose.yml --env-file $ENV_FILE \\"
-  echo "    run --rm openclaw-gateway \\"
-  echo "    node openclaw.mjs channels add --channel telegram --token <YOUR_TOKEN>"
 fi
 
-# --- Start the gateway ---
+# --- Done ---
 echo ""
 echo "========================================="
-echo " Starting OpenClaw Gateway"
+echo " Build & Setup Complete!"
 echo "========================================="
 echo ""
-docker compose -f "$SCRIPT_DIR/docker-compose.yml" --env-file "$ENV_FILE" up -d openclaw-gateway
-
+echo "Image built:  $IMAGE_NAME"
+echo "Config:       $HOME_OPENCLAW/config"
+echo "Workspace:    $HOME_OPENCLAW/workspace"
 echo ""
-echo "========================================="
-echo " Setup Complete!"
-echo "========================================="
+echo "Next steps — create the container in Coolify with these environment variables:"
+echo "  HOME_OPENCLAW=$HOME_OPENCLAW"
+echo "  OPENCLAW_GATEWAY_TOKEN=$OPENCLAW_GATEWAY_TOKEN"
 echo ""
-echo "Dashboard:  http://<your-server-ip>:3333/"
-echo "Token:      $OPENCLAW_GATEWAY_TOKEN"
-echo "Config:     $HOME_OPENCLAW/config"
-echo "Workspace:  $HOME_OPENCLAW/workspace"
-echo "Env file:   $ENV_FILE"
-echo ""
-echo "Commands:"
-echo "  docker compose -f $SCRIPT_DIR/docker-compose.yml --env-file $ENV_FILE logs -f"
-echo "  docker compose -f $SCRIPT_DIR/docker-compose.yml --env-file $ENV_FILE restart"
-echo "  docker compose -f $SCRIPT_DIR/docker-compose.yml --env-file $ENV_FILE down"
-echo ""
-echo "IMPORTANT: Secure the following files which contain secrets:"
-echo "  - $ENV_FILE (contains OPENCLAW_GATEWAY_TOKEN)"
+echo "IMPORTANT: Secure the following file which contains secrets:"
 echo "  - $HOME_OPENCLAW/config/openclaw.json (contains channel tokens)"
