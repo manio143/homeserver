@@ -5,9 +5,10 @@ services:
       HOME: /home/node
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      OLLAMA_HOST: http://ollama-api:11434
     volumes:
-      - ${HOME_OPENCLAW}/config:/home/node/.openclaw
-      - ${HOME_OPENCLAW}/workspace:/home/node/.openclaw/workspace
+      - /home/openclaw/config:/home/node/.openclaw
+      - /home/openclaw/workspace:/home/node/.openclaw/workspace
     ports:
       - "3333:18789"
     init: true
@@ -25,7 +26,11 @@ services:
       ]
     networks:
       - coolify
+      - ollama
 
 networks:
   coolify:
+    external: true
+  ollama:
+    name: q8w484goc8kowgs48448wgwo
     external: true

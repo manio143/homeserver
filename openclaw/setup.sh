@@ -25,7 +25,7 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 # --- Configuration ---
-HOME_OPENCLAW="${HOME_OPENCLAW:-$HOME/openclaw}"
+HOME_OPENCLAW="/home/openclaw"
 
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
@@ -119,6 +119,11 @@ else
   echo "Skipping Telegram setup."
 fi
 
+# --- Secure config files ---
+echo "==> Securing config directory..."
+chmod 600 "$HOME_OPENCLAW/config/openclaw.json" 2>/dev/null || true
+chown -R 1000:1000 "$HOME_OPENCLAW" 2>/dev/null || true
+
 # --- Done ---
 echo ""
 echo "========================================="
@@ -129,9 +134,8 @@ echo "Image built:  $IMAGE_NAME"
 echo "Config:       $HOME_OPENCLAW/config"
 echo "Workspace:    $HOME_OPENCLAW/workspace"
 echo ""
-echo "Next steps — create the container in Coolify with these environment variables:"
-echo "  HOME_OPENCLAW=$HOME_OPENCLAW"
+echo "Next steps — create the container in Coolify with this environment variable:"
 echo "  OPENCLAW_GATEWAY_TOKEN=$OPENCLAW_GATEWAY_TOKEN"
 echo ""
-echo "IMPORTANT: Secure the following file which contains secrets:"
-echo "  - $HOME_OPENCLAW/config/openclaw.json (contains channel tokens)"
+echo "IMPORTANT: Secrets are stored in:"
+echo "  - $HOME_OPENCLAW/config/openclaw.json (contains channel tokens, chmod 600 applied)"
