@@ -77,7 +77,7 @@ chmod 600 openclaw/.env
 chmod 600 ~/openclaw/config/openclaw.json
 ```
 
-**Do not commit the `.env` file to version control.** It is listed in this directory but should remain local to each server.
+**Do not commit the `.env` file to version control.** It is generated during setup and excluded from git via `.gitignore`.
 
 ## Environment Variables
 

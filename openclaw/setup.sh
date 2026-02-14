@@ -32,7 +32,10 @@ export HOME_OPENCLAW="${HOME_OPENCLAW:-$HOME/openclaw}"
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
 # Ensure the container user (uid 1000) can write to these directories
-chown -R 1000:1000 "$HOME_OPENCLAW" 2>/dev/null || true
+if ! chown -R 1000:1000 "$HOME_OPENCLAW" 2>/dev/null; then
+  echo "WARNING: Could not set ownership of $HOME_OPENCLAW to uid 1000."
+  echo "         You may need to run: sudo chown -R 1000:1000 $HOME_OPENCLAW"
+fi
 
 echo "Data directory: $HOME_OPENCLAW"
 echo ""
@@ -41,8 +44,12 @@ echo ""
 if [ -z "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
   if command -v openssl >/dev/null 2>&1; then
     OPENCLAW_GATEWAY_TOKEN="$(openssl rand -hex 32)"
-  else
+  elif command -v python3 >/dev/null 2>&1; then
     OPENCLAW_GATEWAY_TOKEN="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+  else
+    echo "ERROR: openssl or python3 is required to generate a gateway token." >&2
+    echo "       Alternatively, set OPENCLAW_GATEWAY_TOKEN before running this script." >&2
+    exit 1
   fi
 fi
 export OPENCLAW_GATEWAY_TOKEN
