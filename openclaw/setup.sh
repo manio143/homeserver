@@ -26,6 +26,7 @@ fi
 
 # --- Configuration ---
 HOME_OPENCLAW="/home/openclaw"
+OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-jq ripgrep whisper.cpp python3 git curl build-essentials}"
 
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
@@ -86,6 +87,7 @@ echo ""
 docker run --rm -it \
   -e HOME=/home/node \
   -e OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
+  -e OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_DOCKER_APT_PACKAGES" \
   -v "$HOME_OPENCLAW/config:/home/node/.openclaw" \
   -v "$HOME_OPENCLAW/workspace:/home/node/.openclaw/workspace" \
   "$IMAGE_NAME" \
@@ -108,6 +110,7 @@ if [ -n "$TELEGRAM_TOKEN" ]; then
   docker run --rm -it \
     -e HOME=/home/node \
     -e OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
+    -e OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_DOCKER_APT_PACKAGES" \
     -v "$HOME_OPENCLAW/config:/home/node/.openclaw" \
     -v "$HOME_OPENCLAW/workspace:/home/node/.openclaw/workspace" \
     "$IMAGE_NAME" \
@@ -136,6 +139,7 @@ echo "Workspace:    $HOME_OPENCLAW/workspace"
 echo ""
 echo "Next steps — create the container in Coolify with this environment variable:"
 echo "  OPENCLAW_GATEWAY_TOKEN=$OPENCLAW_GATEWAY_TOKEN"
+echo "  OPENCLAW_DOCKER_APT_PACKAGES=$OPENCLAW_DOCKER_APT_PACKAGES"
 echo ""
 echo "IMPORTANT: Secrets are stored in:"
 echo "  - $HOME_OPENCLAW/config/openclaw.json (contains channel tokens, chmod 600 applied)"

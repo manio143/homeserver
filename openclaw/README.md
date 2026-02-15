@@ -30,6 +30,7 @@ Create a new Docker Compose service in Coolify using the `docker-compose.yml` fr
 | Variable | Description |
 |---|---|
 | `OPENCLAW_GATEWAY_TOKEN` | Token printed by `setup.sh` — authenticates dashboard/API access |
+| `OPENCLAW_DOCKER_APT_PACKAGES` | Space-separated apt packages for runtime install (`jq ripgrep whisper.cpp python3 git curl build-essentials`) |
 | `OLLAMA_API_KEY` | Static key used for local Ollama auth (`ollama-local`) |
 
 The OpenClaw container is configured to run as root (`user: "0:0"`) so runtime `apt`/package installs are possible when needed.
