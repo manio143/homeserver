@@ -69,7 +69,7 @@ echo ""
 echo "==> Building Docker image: $IMAGE_NAME"
 echo "    (this may take several minutes)"
 echo ""
-docker build -t "$IMAGE_NAME" -f "$REPO_DIR/Dockerfile" "$REPO_DIR"
+docker build --build-arg OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_DOCKER_APT_PACKAGES" -t "$IMAGE_NAME" -f "$REPO_DIR/Dockerfile" "$REPO_DIR"
 
 # --- Onboarding ---
 echo ""
@@ -87,7 +87,6 @@ echo ""
 docker run --rm -it \
   -e HOME=/home/node \
   -e OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
-  -e OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_DOCKER_APT_PACKAGES" \
   -v "$HOME_OPENCLAW/config:/home/node/.openclaw" \
   -v "$HOME_OPENCLAW/workspace:/home/node/.openclaw/workspace" \
   "$IMAGE_NAME" \
@@ -110,7 +109,6 @@ if [ -n "$TELEGRAM_TOKEN" ]; then
   docker run --rm -it \
     -e HOME=/home/node \
     -e OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
-    -e OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_DOCKER_APT_PACKAGES" \
     -v "$HOME_OPENCLAW/config:/home/node/.openclaw" \
     -v "$HOME_OPENCLAW/workspace:/home/node/.openclaw/workspace" \
     "$IMAGE_NAME" \
@@ -139,7 +137,6 @@ echo "Workspace:    $HOME_OPENCLAW/workspace"
 echo ""
 echo "Next steps — create the container in Coolify with this environment variable:"
 echo "  OPENCLAW_GATEWAY_TOKEN=$OPENCLAW_GATEWAY_TOKEN"
-echo "  OPENCLAW_DOCKER_APT_PACKAGES=$OPENCLAW_DOCKER_APT_PACKAGES"
 echo ""
 echo "IMPORTANT: Secrets are stored in:"
 echo "  - $HOME_OPENCLAW/config/openclaw.json (contains channel tokens, chmod 600 applied)"
