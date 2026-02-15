@@ -32,7 +32,8 @@ Create a new Docker Compose service in Coolify using the `docker-compose.yml` fr
 | `OPENCLAW_GATEWAY_TOKEN` | Token printed by `setup.sh` — authenticates dashboard/API access |
 | `OLLAMA_API_KEY` | Static key used for local Ollama auth (`ollama-local`) |
 
-The OpenClaw container is configured to run as root (`user: "0:0"`), so you can install packages at runtime inside this container without changing runtime users in other services.
+The OpenClaw container is configured to run as root (`user: "0:0"`) so runtime `apt`/package installs are possible when needed.
+⚠️ Running as root increases risk if the container is compromised; this is scoped to OpenClaw only (other services are unchanged), and you should still apply standard container hardening in your Docker host where possible.
 
 ### Telegram Bot Setup
 
