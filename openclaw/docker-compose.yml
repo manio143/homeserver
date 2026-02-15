@@ -6,11 +6,13 @@ services:
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       OLLAMA_HOST: http://ollama-api:11434
+      OLLAMA_API_KEY: "ollama-local"
     volumes:
       - /home/openclaw/config:/home/node/.openclaw
       - /home/openclaw/workspace:/home/node/.openclaw/workspace
     ports:
       - "3333:18789"
+    user: "0:0"
     init: true
     restart: unless-stopped
     command:
