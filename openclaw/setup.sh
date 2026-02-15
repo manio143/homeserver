@@ -26,7 +26,7 @@ fi
 
 # --- Configuration ---
 HOME_OPENCLAW="/home/openclaw"
-OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-jq ripgrep whisper.cpp python3 git curl build-essentials}"
+OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-jq ripgrep python3 git curl ffmpeg build-essential}"
 
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
