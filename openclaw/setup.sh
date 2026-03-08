@@ -26,7 +26,7 @@ fi
 
 # --- Configuration ---
 HOME_OPENCLAW="/home/openclaw"
-OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-jq ripgrep python3 git curl ffmpeg build-essential}"
+OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-jq ripgrep python3 git curl ffmpeg build-essential xvfb python3-pip python3-dev python3.11-venv}"
 
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
