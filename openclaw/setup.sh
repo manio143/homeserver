@@ -26,6 +26,7 @@ fi
 
 # --- Configuration ---
 HOME_OPENCLAW="/home/openclaw"
+OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-jq ripgrep python3 git curl ffmpeg build-essential xvfb python3-pip python3-dev python3.11-venv}"
 
 mkdir -p "$HOME_OPENCLAW/config"
 mkdir -p "$HOME_OPENCLAW/workspace"
@@ -68,7 +69,7 @@ echo ""
 echo "==> Building Docker image: $IMAGE_NAME"
 echo "    (this may take several minutes)"
 echo ""
-docker build -t "$IMAGE_NAME" -f "$REPO_DIR/Dockerfile" "$REPO_DIR"
+docker build --build-arg OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_DOCKER_APT_PACKAGES" -t "$IMAGE_NAME" -f "$REPO_DIR/Dockerfile" "$REPO_DIR"
 
 # --- Onboarding ---
 echo ""
