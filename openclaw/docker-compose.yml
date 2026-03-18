@@ -29,6 +29,13 @@ services:
     networks:
       - coolify
       - ollama
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    volumes:
+      - /home/openclaw/qdrant:/qdrant/storage
+    networks:
+      - ollama
 
 networks:
   coolify:
